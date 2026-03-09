@@ -54,7 +54,6 @@ fun MineSweeperGame(
         verticalArrangement = Arrangement.Top
     ) {
 
-        Spacer(Modifier.height(120.dp).fillMaxWidth())
         GameTopBar(uiState.gameState, uiState.scale, onSmileyClick, onFlagClick)
         MineField(uiState.board, uiState.scale, onClick)
     }
