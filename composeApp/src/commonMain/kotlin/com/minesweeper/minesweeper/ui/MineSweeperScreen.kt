@@ -67,6 +67,7 @@ fun GameTopBar(
 ) {
     var toggleFlag by remember { mutableStateOf(false) }
     Row(
+        modifier = Modifier.padding(top = 64.dp, bottom = 8.dp),
         horizontalArrangement = Arrangement.SpaceAround,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -124,7 +125,7 @@ fun MineField(uiBoard: UiBoard, scale: Float, onClick: (Int, Int) -> Unit) {
                 for (j in 0 until uiBoard.cols) {
                     Square(
                         scale = scale,
-                        state = uiBoard.board[(i * uiBoard.cols) + j],
+                        state = uiBoard[i, j],
                         onClick = { onClick(i, j) })
                 }
             }
