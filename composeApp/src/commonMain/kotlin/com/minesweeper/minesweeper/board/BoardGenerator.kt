@@ -26,8 +26,21 @@ object BoardGenerator {
                     rows = mapDifficulty.rows,
                     cols = mapDifficulty.cols
                 ).let { completedGrid: String ->
+                    val unmaskedBoard = Board(
+                        board = completedGrid,
+                        nMines = mapDifficulty.numberOfMines,
+                        rows = mapDifficulty.rows,
+                        cols = mapDifficulty.cols
+                    )
+                    val maskedBoard = Board(
+                        board = MineSweeperField.HIDDEN.toString().repeat(mapDifficulty.rows * mapDifficulty.cols),
+                        nMines = mapDifficulty.numberOfMines,
+                        rows = mapDifficulty.rows,
+                        cols = mapDifficulty.cols
+                    )
                     return GameBoard(
-                        unmaskedBoard = completedGrid,
+                        unmaskedBoard = unmaskedBoard,
+                        maskedBoard = maskedBoard,
                         rows = mapDifficulty.rows,
                         cols = mapDifficulty.cols
                     )

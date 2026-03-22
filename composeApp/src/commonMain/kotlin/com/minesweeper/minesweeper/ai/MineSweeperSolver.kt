@@ -31,9 +31,6 @@ class MineSweeperSolver {
             if (foundMines == boardToSolve.nMines)
                 break
 
-
-            //  println(solvedBoard.format())
-            //  println()
         }
 
 

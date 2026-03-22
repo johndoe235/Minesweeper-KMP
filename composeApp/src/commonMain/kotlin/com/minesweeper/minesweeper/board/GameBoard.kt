@@ -1,13 +1,11 @@
 package com.minesweeper.minesweeper.board
 
-import com.minesweeper.minesweeper.BoardRaw
 import com.minesweeper.minesweeper.MineSweeperField
-import com.minesweeper.minesweeper.checkAndGet
 
 
 class GameBoard(
-    private val unmaskedBoard: BoardRaw,
-    private val maskedBoard: MutableList<Char> = MutableList(unmaskedBoard.length) { '?' },
+    private val unmaskedBoard: Board,
+    private val maskedBoard: Board,
     val rows: Int,
     val cols: Int,
 
@@ -16,24 +14,24 @@ class GameBoard(
 
 
     fun flag(row: Int, column: Int) {
-        if (maskedBoard[row * cols + column] == MineSweeperField.HIDDEN)
-            maskedBoard[row * cols + column] = MineSweeperField.FLAG
-        else if (maskedBoard[row * cols + column] == MineSweeperField.FLAG)
-            maskedBoard[row * cols + column] = MineSweeperField.HIDDEN
+        if (maskedBoard[row, column] == MineSweeperField.HIDDEN)
+            maskedBoard[row, column] = MineSweeperField.FLAG
+        else if (maskedBoard[row, column] == MineSweeperField.FLAG)
+            maskedBoard[row, column] = MineSweeperField.HIDDEN
     }
 
     fun open(row: Int, column: Int): Char {
-        if(  maskedBoard[row * cols + column] == MineSweeperField.FLAG)
+        if (maskedBoard[row, column] == MineSweeperField.FLAG)
             return MineSweeperField.FLAG
 
-        return unmaskedBoard[row * cols + column].let {
-            maskedBoard[row * cols + column] = it
+        return unmaskedBoard[row, column].let {
+            maskedBoard[row, column] = it
             it
         }
     }
 
 
-    fun getBoard(): String = maskedBoard.joinToString(separator = "", prefix = "", postfix = "")
+    fun getBoard(): String = maskedBoard.board
 
     fun openAdjacentEmptySquares(row: Int, column: Int) {
         findAdjacentEmptySquares(row, column).let { emptySquares ->
@@ -60,7 +58,7 @@ class GameBoard(
                 -1 to 0, // row - 1 ; col
             )) {
                 val adjecentSquare = currentSquare.first + it.first to currentSquare.second + it.second
-                val squareSymbol = unmaskedBoard.checkAndGet(adjecentSquare.first, adjecentSquare.second, rows, cols)
+                val squareSymbol = unmaskedBoard.checkAndGet(adjecentSquare.first, adjecentSquare.second)
 
                 if (squareSymbol == null || squaresToVisit.contains(adjecentSquare) || squaresThatHaveBeenVisited.contains(
                         adjecentSquare
@@ -79,7 +77,12 @@ class GameBoard(
 
 
     companion object {
-        val EmptyGameBoard = GameBoard(unmaskedBoard = "", maskedBoard = mutableListOf(), rows = 0, cols = 0)
+        val EmptyGameBoard = GameBoard(
+            unmaskedBoard = Board("", 0, 0, 0),
+            maskedBoard = Board("", 0, 0, 0),
+            rows = 0,
+            cols = 0
+        )
     }
 }
 
