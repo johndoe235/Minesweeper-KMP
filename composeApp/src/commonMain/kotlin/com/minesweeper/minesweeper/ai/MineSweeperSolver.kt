@@ -1,30 +1,41 @@
 package com.minesweeper.minesweeper.ai
 
-import com.minesweeper.minesweeper.MineSweeperField
+import  com.minesweeper.minesweeper.MineSweeperField
 import com.minesweeper.minesweeper.board.Board
 import com.minesweeper.minesweeper.board.deepCopy
 
-class MineSweeperSolver {
+
+class MineSweeperSolver() {
 
     private val bestMovesCache: MutableList<Cell> = mutableListOf()
-
     private val nodesProcessed: MutableList<Cell> = mutableListOf<Cell>()
     private var nodesToProcess: MutableList<Cell> = mutableListOf<Cell>()
     private var foundMines = 0
 
-    fun solve(boardToSolve: Board, open: (Int, Int) -> Char): Board {
+    private var _open: ((Int, Int) -> Char)? = null
+    private fun open(row: Int, col: Int): Char {
+        return _open!!.invoke(row, col)
+    }
+
+    fun solve(boardToSolve: Board, openSquare: (Int, Int) -> Char): Board {
+        _open = openSquare
         val solvedBoard = boardToSolve.deepCopy()
+        var turns = 0
         foundMines = 0
         var hasWonTheGame = false
         nodesToProcess = getOpenSquares(solvedBoard)
 
+
         while (!hasWonTheGame) {
+            println(solvedBoard.format())
+            println("turns ${turns++}  mines found: $foundMines")
+
             getNextMove(solvedBoard, nodesToProcess)?.let { nextSafeMove ->
                 val value = open(nextSafeMove.row, nextSafeMove.col)
                 solvedBoard[nextSafeMove.row, nextSafeMove.col] = value
 
-                if (!nodesProcessed.contains(Cell(nextSafeMove.row, nextSafeMove.col)))
-                    nodesToProcess.add(Cell(nextSafeMove.row, nextSafeMove.col))
+                if (!nodesProcessed.contains(nextSafeMove))
+                    nodesToProcess.add(nextSafeMove)
             }
 
 
@@ -33,17 +44,21 @@ class MineSweeperSolver {
 
         }
 
+        openHiddenSquares(solvedBoard)
 
+        _open = null
+        return solvedBoard
+    }
+
+
+    fun openHiddenSquares(solvedBoard: Board) {
         for (row in 0 until solvedBoard.rows) {
             for (col in 0 until solvedBoard.cols) {
                 if (solvedBoard[row, col] == MineSweeperField.HIDDEN)
                     solvedBoard[row, col] = open(row, col)
             }
         }
-
-        return solvedBoard
     }
-
 
     private fun getNextMove(board: Board, nodes: List<Cell>): Cell? {
         if (bestMovesCache.isNotEmpty()) {
@@ -63,12 +78,15 @@ class MineSweeperSolver {
         sortedProbabilities.forEach {
             if (it.second > 0.999f) {
                 flag(board, it.first)
-            } else if (it.second < 0.000f)
+            } else if (it.second < 0.0001f)
                 bestMovesCache.add(it.first)
-
         }
 
-        return sortedProbabilities.first().first
+        println(sortedProbabilities.first())
+        return if (sortedProbabilities.isEmpty() || sortedProbabilities.first().second  == 1f)
+            null
+        else
+            sortedProbabilities.first().first
     }
 
     private fun flag(board: Board, cell: Cell) {
@@ -101,20 +119,4 @@ class MineSweeperSolver {
     }
 
 
-    private class ProbabilityBoard(board: Board) {
-        private val rows: Int = board.rows
-        private val cols: Int = board.cols
-        private val _board = MutableList<Float>(rows * cols) { 1f }
-
-        operator fun set(row: Int, col: Int, value: Float): Unit {
-            _board[row * cols + col] = value
-        }
-
-        operator fun get(row: Int, col: Int): Float = _board[row * cols + col]
-
-        val board: List<Float>
-            get() = _board
-
-
-    }
 }

@@ -7,6 +7,7 @@ import com.minesweeper.minesweeper.board.GetNeighborsOfZoneUseCase
 
 /**
  * EPP algorithm
+ * Gets the probabilities that a square is a mine
  */
 class GetProbabilitiesForAZoneUseCase {
     fun execute(openSquaresOfInterest: List<Cell>, board: Board): List<Pair<Cell, Float>> {
