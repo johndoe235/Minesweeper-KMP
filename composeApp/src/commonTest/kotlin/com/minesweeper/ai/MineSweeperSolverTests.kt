@@ -3,6 +3,7 @@ package com.minesweeper.ai
 import com.minesweeper.minesweeper.MineSweeperField
 import com.minesweeper.minesweeper.ai.MineSweeperSolver
 import com.minesweeper.minesweeper.board.Board
+import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -286,7 +287,7 @@ class MineSweeperSolverTests {
         }
     }
 
-    /*@Test
+   @Test
     fun `Should solve expert(16x30) map 1`() {
         val rows = 30
         val cols = 16
@@ -362,7 +363,6 @@ class MineSweeperSolverTests {
             assertEquals(board, actual.format())
         }
     }
-*/
 }
 
 private fun doTest(

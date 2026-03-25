@@ -1,6 +1,7 @@
 package com.minesweeper.minesweeper.ai
 
 import  com.minesweeper.minesweeper.MineSweeperField
+import com.minesweeper.minesweeper.board.AreAllNeighborsOpenedUseCase
 import com.minesweeper.minesweeper.board.Board
 import com.minesweeper.minesweeper.board.deepCopy
 
@@ -8,22 +9,22 @@ import com.minesweeper.minesweeper.board.deepCopy
 class MineSweeperSolver() {
 
     private val bestMovesCache: MutableList<Cell> = mutableListOf()
-    private val nodesProcessed: MutableList<Cell> = mutableListOf()
-    private var nodesToProcess: MutableList<Cell> = mutableListOf()
+    private var nodesToProcess: MutableSet<Cell> = mutableSetOf()
     private var foundMines = 0
 
     fun solve(boardToSolve: Board, open: (Int, Int) -> Char): Board {
         val solvedBoard = boardToSolve.deepCopy()
         foundMines = 0
-        nodesToProcess = getOpenSquares(solvedBoard)
+        nodesToProcess = getOpenSquares(solvedBoard).toMutableSet()
         //1.find all mines
         do {
             getNextMove(solvedBoard, nodesToProcess)?.let { nextSafeMove ->
                 val value = open(nextSafeMove.row, nextSafeMove.col)
                 solvedBoard[nextSafeMove.row, nextSafeMove.col] = value
-
-                if (!nodesProcessed.contains(nextSafeMove)) nodesToProcess.add(nextSafeMove)
+                    nodesToProcess.add(nextSafeMove)
             }
+
+
         } while (foundMines < boardToSolve.nMines)
 
         //open all squares that aren't flagged
@@ -37,21 +38,18 @@ class MineSweeperSolver() {
         return solvedBoard
     }
 
-
-    private fun getNextMove(board: Board, nodes: List<Cell>): Cell? {
+    private fun getNextMove(board: Board, nodes: Set<Cell>): Cell? {
         if (bestMovesCache.isNotEmpty()) {
-            val bestMovePopped = bestMovesCache.first()
-            bestMovesCache.removeFirst()
-            return bestMovePopped
+
+            return  bestMovesCache.removeFirst()
         }
 
         if (nodes.isEmpty()) {
             throw IllegalStateException("Nodes to process  were empty")
         }
 
-        val probabilities = GetProbabilitiesForAZoneUseCase().execute(nodes, board)
+        val probabilities = GetProbabilitiesForAZoneUseCase().execute(nodes.toList(), board)
         val sortedProbabilities = probabilities.sortedBy { it.second }
-        nodesProcessed.addAll(nodes)
 
         sortedProbabilities.forEach {
             if (it.second > 0.999f) {
@@ -59,6 +57,7 @@ class MineSweeperSolver() {
             } else if (it.second < 0.0001f) bestMovesCache.add(it.first)
         }
 
+        //removeInnerNodes(board)
         return if (sortedProbabilities.isEmpty() || sortedProbabilities.first().second == 1f) null
         else sortedProbabilities.first().first
     }
@@ -70,7 +69,6 @@ class MineSweeperSolver() {
 
 
     private fun getOpenSquares(board: Board) = mutableListOf<Cell>().also { startingPoints ->
-
         for (row in 0 until board.rows) {
             for (col in 0 until board.cols) {
                 val value = board[row, col]
@@ -79,14 +77,15 @@ class MineSweeperSolver() {
         }
     }
 
-    private fun getRandomUnopenedCell(board: Board): Cell {
-        val unOpenedCells = mutableListOf<Cell>()
-        for (row in 0 until board.rows) {
-            for (col in 0 until board.cols) {
-                if (board[row, col] == '?') unOpenedCells.add(Cell(row, col))
+    fun removeInnerNodes(board: Board) {
+        val processedNodes = mutableSetOf<Cell>()
+        val usecase = AreAllNeighborsOpenedUseCase()
+        nodesToProcess.forEach {
+            if (usecase.execute(it,board)) {
+                processedNodes.add(it)
             }
         }
-        return unOpenedCells.random()
+        nodesToProcess.removeAll(processedNodes)
     }
 
 

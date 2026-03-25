@@ -11,7 +11,8 @@ import com.minesweeper.minesweeper.board.GetNeighborsOfZoneUseCase
  */
 class GetProbabilitiesForAZoneUseCase {
     fun execute(openSquaresOfInterest: List<Cell>, board: Board): List<Pair<Cell, Float>> {
-        val sortedSolutionsMap = sortSolutionsByMineCount(ExhaustiveSearch().execute(openSquaresOfInterest, board))
+        val sortedSolutionsMap =
+            sortSolutionsByMineCount(ExhaustiveSearch().execute(openSquaresOfInterest, board))
         val probabilities = mutableListOf<Pair<Cell, Float>>()
         val zonesOfInterest =
             GetNeighborsOfZoneUseCase().execute(openSquaresOfInterest, board, sortByRow = true)
@@ -23,8 +24,8 @@ class GetProbabilitiesForAZoneUseCase {
                 numberOfUnknownSquares = countUnknownSquares(board) - zonesOfInterest.size,
                 totalNumberOfMines = board.nMines,
                 solutions = sortedSolutionsMap
-            )
-             probabilities.add(currentCellOfInterest to probabilityOfMine)
+            ).toFloat()
+            probabilities.add(currentCellOfInterest to probabilityOfMine)
         }
         return probabilities
     }
@@ -41,9 +42,9 @@ class GetProbabilitiesForAZoneUseCase {
         numberOfUnknownSquares: Int,
         totalNumberOfMines: Int,
         solutions: Map<Int, List<Board>>
-    ): Float {
-        var totalNumberOfArrangementsWhereSquareContainsAMine: Long = 0
-        var totalNumberOfAllPossibleBombArrangements: Long = 0
+    ): Double {
+        var totalNumberOfArrangementsWhereSquareContainsAMine: Double = 0.0
+        var totalNumberOfAllPossibleBombArrangements: Double = 0.0
         solutions.forEach { (numberOfPlacedMines, boardSolutions) ->
             val minesLeft = totalNumberOfMines - numberOfPlacedMines
             totalNumberOfArrangementsWhereSquareContainsAMine += numberOfSolutionsWhereCellIsAMine(
@@ -58,10 +59,10 @@ class GetProbabilitiesForAZoneUseCase {
             )
         }
 
-        if(totalNumberOfAllPossibleBombArrangements == 0L)
-            return 0f
+        if (totalNumberOfAllPossibleBombArrangements == 0.0)
+            return 0.0
 
-        return totalNumberOfArrangementsWhereSquareContainsAMine.toFloat() / totalNumberOfAllPossibleBombArrangements.toFloat()
+        return totalNumberOfArrangementsWhereSquareContainsAMine / totalNumberOfAllPossibleBombArrangements
     }
 
     private fun numberOfSolutionsWhereCellIsAMine(cell: Cell, list: List<Board>): Int {
@@ -98,11 +99,11 @@ class GetProbabilitiesForAZoneUseCase {
 }
 
 
-fun calculateBinomial(n: Int, k: Int): Long {
+fun calculateBinomial(n: Int, k: Int): Double {
     var k1 = k
     if (k1 > n - k1) k1 = n - k1
 
-    var b: Long = 1
+    var b = 1.0
     var i = 1
     var m = n
     while (i <= k1) {
